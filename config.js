@@ -16,7 +16,7 @@ const CFG_APP_TAGLINE = 'Daily Practice Logger';
 // Leave CFG_SHEET_URL empty — it is now handled via encryption.
 const CFG_SHEET_URL      = '';    // leave empty
 const CFG_USE_ENCRYPTION = true;  // set false to disable encryption (Option A fallback)
-const CFG_ENCRYPTED_URL  = 'X3z8FhqwLBNFD408l8OvJQ==.PMbC9Pq9rbtGc4lt.yWLLsCjFUu+0lgEu5KxoNwehhacevitm5EfWJOQmPJA9S94pXKLYXxS8DGxK/UxheA3lWTrNsSGMl3N66DwZAboKWo4gd+r5IkAeIINilOnK16szJLK5yeKFzw8JG7jZG008CUrHHD9pP1djlKFXjpmzuor1Uo9h99c28II2xqiyXA==';    // paste your encrypted string here after running encrypt-tool.html
+const CFG_ENCRYPTED_URL  = 'qkIl7OETG3byXJLCf1j02Q==.Kh9uAezuLWN901AY.5fG1Fpc+xZJGEQLs7oGSOw88hJv4Fz77haOw6DTyDXxmkxyQ2h4F7dDVlJLbK5sE5ZrFFHMY5pRL3flcJ5dNZlVUoUE+3zfQtsRv0hK1tm54pTo2mMBTmfz8aqes7v204dRcyxtRX9P2Qo6fGXoJHvNcKZXVpG6Mx2Rw1d8GmQ/IMw==';    // paste your encrypted string here after running encrypt-tool.html
 
 
 // ── THEME COLOURS ────────────────────────────────────────────
