@@ -1146,7 +1146,31 @@ function loadCats(){
   try{const r=localStorage.getItem(CATS_KEY);if(r)return JSON.parse(r);}catch(e){}
   localStorage.setItem(CATS_KEY,JSON.stringify(DEFAULT_CATS));return JSON.parse(JSON.stringify(DEFAULT_CATS));
 }
-function saveCats(){localStorage.setItem(CATS_KEY,JSON.stringify(categories));localStorage.setItem('art_hours_settings_saved',Date.now());}
+function saveCats(){
+  // Save full categories to CATS_KEY
+  localStorage.setItem(CATS_KEY,JSON.stringify(categories));
+  localStorage.setItem('art_hours_settings_saved',Date.now());
+  // Also save subcategories separately — this key is NEVER touched by sync
+  const subcatMap={};
+  categories.forEach(c=>{if(c.subcategories&&c.subcategories.length) subcatMap[c.name]=c.subcategories;});
+  localStorage.setItem('art_hours_subcats',JSON.stringify(subcatMap));
+}
+
+function loadSubcats(){
+  // Restore subcategories from the protected key into current categories array
+  try{
+    const saved=localStorage.getItem('art_hours_subcats');
+    if(!saved) return;
+    const subcatMap=JSON.parse(saved);
+    categories.forEach(c=>{
+      if(subcatMap[c.name]&&subcatMap[c.name].length){
+        const combined=[...new Set([...(c.subcategories||[]),...subcatMap[c.name]])];
+        c.subcategories=combined;
+      }
+    });
+    localStorage.setItem(CATS_KEY,JSON.stringify(categories));
+  }catch(e){}
+}
 
 function loadTargets(){
   try{const r=localStorage.getItem(TARGETS_KEY);if(r)return JSON.parse(r);}catch(e){}
@@ -1193,6 +1217,8 @@ function confirmMigration(){
 // ═══════════════════════════════════════════════════════════
 let data        = loadData();
 let categories  = loadCats();
+// Restore subcategories from protected key on every load
+setTimeout(()=>{ if(typeof loadSubcats==='function') loadSubcats(); },0);
 let targets     = loadTargets();
 let currentPage = 'home';
 let currentChart= 'daily';
@@ -1373,6 +1399,8 @@ async function autoSync(url){
 
     if(setJson.categories&&setJson.categories.length){
       // Always merge — local subcategories survive sync
+      console.log('[Sync] Sheet cats:', JSON.stringify(setJson.categories.map(c=>({name:c.name,subs:c.subcategories}))));
+      console.log('[Sync] Local cats before merge:', JSON.stringify(categories.map(c=>({name:c.name,subs:c.subcategories}))));
       const merged=setJson.categories.map(sheetCat=>{
         const localCat=categories.find(c=>c.name===sheetCat.name);
         const combined=[...new Set([...(sheetCat.subcategories||[]),...((localCat&&localCat.subcategories)||[])])];
@@ -1381,6 +1409,9 @@ async function autoSync(url){
       categories.forEach(lc=>{if(!merged.find(c=>c.name===lc.name))merged.push(lc);});
       categories=merged;
       localStorage.setItem(CATS_KEY,JSON.stringify(categories));
+      console.log('[Sync] Merged cats:', JSON.stringify(categories.map(c=>({name:c.name,subs:c.subcategories}))));
+      // Restore subcategories from protected local key — survives any sync overwrite
+      loadSubcats();
     }
     if(setJson.targets&&Object.keys(setJson.targets).length&&sheetSettingsTime>=localSettingsTime){
       targets=setJson.targets;
@@ -1434,11 +1465,13 @@ async function queuePendingSync(url){
 // Push settings to Sheet silently (fire and forget)
 async function pushSettingsToSheet(){
   const url=localStorage.getItem(SHEET_URL_KEY);
-  if(!url||!navigator.onLine)return;
+  if(!url||!navigator.onLine){console.log('[Settings] pushSettingsToSheet skipped — offline or no URL');return;}
   try{
+    console.log('[Settings] Pushing to sheet:', JSON.stringify(categories.map(c=>({name:c.name,subs:c.subcategories}))));
     await sheetFetch(url,{action:'saveSettings',categories,targets});
     localStorage.setItem('art_hours_settings_saved',Date.now());
-  }catch(e){}
+    console.log('[Settings] Push success, timestamp:', Date.now());
+  }catch(e){console.error('[Settings] Push failed:',e);}
 }
 
 function setSyncPill(state,label){const p=document.getElementById('syncPill');p.className=`sync-pill ${state}`;p.textContent=label;}
@@ -2816,6 +2849,7 @@ async function gsheetSync(silent=false){
         if(!merged.find(c=>c.name===localCat.name)) merged.push(localCat);
       });
       categories=merged;localStorage.setItem(CATS_KEY,JSON.stringify(categories));
+      loadSubcats();
     }
     if(setJson.targets&&Object.keys(setJson.targets).length&&sheetT>=localT){
       targets=setJson.targets;localStorage.setItem(TARGETS_KEY,JSON.stringify(targets));
