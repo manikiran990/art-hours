@@ -81,11 +81,8 @@ async function syncToSheets() {
   const { url, data } = pending[pending.length - 1];
   if (!url) return;
   try {
-    await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'sync', data }),
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const payload = encodeURIComponent(JSON.stringify({ action: 'sync', data }));
+    await fetch(`${url}?payload=${payload}`, { method: 'GET', redirect: 'follow' });
     const tx2 = db.transaction('pending', 'readwrite');
     tx2.objectStore('pending').clear();
     const clients = await self.clients.matchAll();
