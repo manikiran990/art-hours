@@ -1,7 +1,7 @@
 // Art Hours — Service Worker v3
 // Network-first for app files so updates always land immediately
 
-const CACHE_NAME = 'art-hours-v4';
+const CACHE_NAME = 'art-hours-v5';
 const STATIC = ['./index.html', './config.js', './manifest.json'];
 
 // ── INSTALL ───────────────────────────────────────────────
