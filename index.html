@@ -508,7 +508,7 @@ body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;p
     <div class="subtitle" id="dateRange"></div>
   </div>
   <div class="header-right">
-    <div class="level-badge" id="levelBadge" onclick="showPage('analysis')">LVL 1</div>
+
     <div class="sync-pill nosync" id="syncPill" onclick="showPage('settings')">○ no sync</div>
   </div>
 </div>
@@ -1514,8 +1514,7 @@ function render(){
   if(currentPage==='analysis')renderAnalysisTab(currentAnalysisTab);
   if(currentPage==='settings')renderSettings();
   if(data.length)document.getElementById('dateRange').textContent=`${toDDMMYYYY(data[0].date)} → ${toDDMMYYYY(data[data.length-1].date)}`;
-  const lv=getLevel(s.total);
-  document.getElementById('levelBadge').textContent=`LVL ${lv.level} · ${lv.name}`;
+
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -4241,6 +4240,10 @@ function renderMonthHistory(){
 function goToFullHistory(){
   showPage('analysis');
   switchAnalysis('overview');
+  setTimeout(()=>{
+    const el=document.getElementById('monthlyCards');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  },250);
 }
 
 function renderFullMonthHistory(){
