@@ -1469,9 +1469,11 @@ function showPage(name){
 
 function switchAnalysis(tab){
   currentAnalysisTab=tab;
-  ['overview','chart','skills','patterns'].forEach(t=>{
-    document.getElementById('atab-'+t).classList.toggle('active',t===tab);
-    document.getElementById('analysis-'+t).style.display=t===tab?'block':'none';
+  ['overview','skills','patterns'].forEach(t=>{
+    const tabEl=document.getElementById('atab-'+t);
+    const pageEl=document.getElementById('analysis-'+t);
+    if(tabEl) tabEl.classList.toggle('active',t===tab);
+    if(pageEl) pageEl.style.display=t===tab?'block':'none';
   });
   renderAnalysisTab(tab);
 }
@@ -4653,7 +4655,13 @@ render();
 initTimerFromConfig();
 
 // Check unlock last — so app renders behind unlock screen
-checkUnlock();
+const _needsUnlock = checkUnlock();
+// If encryption is enabled but user is already in a session (or skipped),
+// show the connect button so they can reconnect without reload
+if(!_needsUnlock && CFG_USE_ENCRYPTION && CFG_ENCRYPTED_URL && !sessionStorage.getItem('art_hours_session_url')){
+  const _cb=document.getElementById('connectToSheetRow');
+  if(_cb) _cb.style.display='flex';
+}
 </script>
 </body>
 </html>
