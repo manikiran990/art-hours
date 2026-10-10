@@ -623,58 +623,24 @@ body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;p
   <!-- ANALYSIS SUB-TABS -->
   <div class="chart-tabs" style="margin-bottom:16px">
     <button class="chart-tab active" id="atab-overview" onclick="switchAnalysis('overview')">Overview</button>
-    <button class="chart-tab" id="atab-chart" onclick="switchAnalysis('chart')">Chart</button>
+
     <button class="chart-tab" id="atab-skills" onclick="switchAnalysis('skills')">Skills</button>
     <button class="chart-tab" id="atab-patterns" onclick="switchAnalysis('patterns')">Patterns</button>
   </div>
 
   <!-- OVERVIEW TAB -->
   <div id="analysis-overview">
-    <div class="section-title">Your Level</div>
-    <div id="levelCard"></div>
-    <div class="section-title">Badges</div>
-    <div class="badges-grid" id="badgesGrid"></div>
-    <div class="section-title">Progress</div>
-    <div id="progressBars"></div>
+
+
+
     <div class="section-title">Stats</div>
     <div class="stats-grid" id="stats"></div>
-    <div class="section-title">Streak Comparison</div>
-    <div id="streakCompare"></div>
+
     <div class="section-title">Monthly Summary</div>
     <div class="monthly-cards" id="monthlyCards"></div>
   </div>
 
-  <!-- CHART TAB -->
-  <div id="analysis-chart" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div class="chart-tabs" style="margin-bottom:0;flex:1;margin-right:10px">
-        <button class="chart-tab active" id="tab-daily" onclick="switchChart('daily')">Daily</button>
-        <button class="chart-tab" id="tab-cumulative" onclick="switchChart('cumulative')">Cumulative</button>
-      </div>
-      <div id="chartZoomBtns" style="display:flex;gap:3px">
-        <button class="lang-pill active" id="zoom-7"  onclick="setChartZoom(7)">7d</button>
-        <button class="lang-pill"        id="zoom-30" onclick="setChartZoom(30)">30d</button>
-        <button class="lang-pill"        id="zoom-all" onclick="setChartZoom(0)">All</button>
-      </div>
-    </div>
-    <div id="chart-daily-wrap">
-      <div class="chart-scroll">
-        <div class="chart-wrap"><div class="chart-inner" id="chart"></div></div>
-      </div>
-      <p style="font-size:0.6rem;color:var(--muted);text-align:center;margin-top:8px;">Tap any bar · scroll to pan · Green = met · Red = missed</p>
-    </div>
-    <div id="chart-cumulative-wrap" style="display:none">
-      <div class="chart-scroll">
-        <div class="chart-wrap"><div class="cum-chart" id="cumChart"></div></div>
-      </div>
-      <p style="font-size:0.6rem;color:var(--muted);text-align:center;margin-top:8px;">Total hours accumulated over time</p>
-    </div>
-    <!-- Monthly history section -->
-    <div id="monthHistorySection" style="margin-top:24px">
-      <div class="section-title">Monthly History</div>
-      <div id="chartMonthHistory"></div>
-    </div>
-  </div>
+
 
   <!-- SKILLS TAB -->
   <div id="analysis-skills" style="display:none">
@@ -768,6 +734,10 @@ body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;p
     <div class="backup-row" onclick="openSheetSheet()">
       <div class="backup-row-icon">⟳</div>
       <div class="backup-row-text"><div class="backup-row-title">Google Sheets Sync</div><div class="backup-row-desc">Connect to a live Google Sheet — auto-syncs on open</div></div>
+    </div>
+    <div class="backup-row" id="connectToSheetRow" onclick="showConnectPrompt()" style="display:none">
+      <div class="backup-row-icon">🔐</div>
+      <div class="backup-row-text"><div class="backup-row-title">Connect to Sheet</div><div class="backup-row-desc">Enter passphrase to enable live sync this session</div></div>
     </div>
   </div>
 
@@ -1509,12 +1479,9 @@ function switchAnalysis(tab){
 function renderAnalysisTab(tab){
   if(tab==='overview'){
     const s=computeStats();
-    renderLevelCard(s);renderBadges(s);renderProgressBars(s);
-    renderStats(s);renderStreakCompare(s);renderMonthlyCards();
+    renderStats(s);renderMonthlyCards();
   }
-  if(tab==='chart'){
-    if(currentChart==='daily')renderChart();else renderCumulativeChart();
-  }
+
   if(tab==='skills'){
     renderPieChart();renderSkillSplit();
   }
@@ -4271,12 +4238,7 @@ function renderMonthHistory(){
 
 function goToFullHistory(){
   showPage('analysis');
-  switchAnalysis('chart');
-  // scroll to history section after short delay for render
-  setTimeout(()=>{
-    const el=document.getElementById('monthHistorySection');
-    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
-  },200);
+  switchAnalysis('overview');
 }
 
 function renderFullMonthHistory(){
@@ -4612,11 +4574,29 @@ async function unlockApp(){
 function unlockSkip(){
   dismissUnlock();
   setSyncPill('nosync','○ no sync');
+  // Show "Connect to Sheet" button in settings if encryption is enabled
+  const btn=document.getElementById('connectToSheetRow');
+  if(btn) btn.style.display='flex';
+}
+
+function showConnectPrompt(){
+  // Show unlock screen again so user can enter passphrase to connect
+  const el=document.getElementById('unlockScreen');
+  el.style.display='flex';
+  el.classList.remove('hide');
+  document.getElementById('unlockErr').textContent='';
+  document.getElementById('unlockPass').value='';
+  // Change sub text to clarify this is to connect sync
+  document.getElementById('unlockSyncing').textContent='⟳ Connecting to Sheet…';
+  setTimeout(()=>document.getElementById('unlockPass').focus(),150);
 }
 
 function dismissUnlock(){
   const el=document.getElementById('unlockScreen');
   el.classList.add('hide');
+  // Hide connect button — we're now synced
+  const btn=document.getElementById('connectToSheetRow');
+  if(btn) btn.style.display='none';
   // Reset animation flag — fires fresh on real data after unlock
   _homeAnimated=false;
   setTimeout(()=>{
