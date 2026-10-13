@@ -1440,6 +1440,12 @@ async function autoSync(url){
     if(pullJson.data&&pullJson.data.length){
       pullJson.data.forEach(imp=>{
         const idx=data.findIndex(d=>d.date===imp.date);
+        // If sheet returns target=0 but we have a local target, preserve local
+        if((!imp.target||imp.target===0)&&idx>=0&&data[idx].target>0){
+          imp.target=data[idx].target;
+        }
+        // If still no target, use default for that day
+        if(!imp.target||imp.target===0) imp.target=getDefaultTarget(imp.date);
         const entry=normalize(imp);
         if(idx>=0)data[idx]=entry;else data.push(entry);
       });
@@ -2870,6 +2876,10 @@ async function gsheetSync(silent=false){
     if(pullJson.data&&pullJson.data.length){
       pullJson.data.forEach(imp=>{
         const idx=data.findIndex(d=>d.date===imp.date);
+        if((!imp.target||imp.target===0)&&idx>=0&&data[idx].target>0){
+          imp.target=data[idx].target;
+        }
+        if(!imp.target||imp.target===0) imp.target=getDefaultTarget(imp.date);
         const entry=normalize(imp);
         if(idx>=0)data[idx]=entry;else data.push(entry);
       });
