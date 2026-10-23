@@ -1107,8 +1107,13 @@ function uid(){return Math.random().toString(36).slice(2,9);}
 
 function normalize(e){
   const dt=new Date(e.date+'T00:00:00');
-  const hours = e.sessions ? e.sessions.reduce((s,x)=>s+(+x.hours),0) : (+e.hours||0);
-  const sessions = e.sessions || [{category:'General',subcategory:'',hours:+e.hours||0}];
+  const sessionsHours = e.sessions ? e.sessions.reduce((s,x)=>s+(+x.hours),0) : 0;
+  // If sessions sum to 0 but we have a top-level hours value, trust top-level hours
+  const hours = sessionsHours > 0 ? sessionsHours : (+e.hours||0);
+  // If sessions exist but all have 0 hours, rebuild from top-level hours
+  const sessions = (e.sessions && sessionsHours > 0)
+    ? e.sessions
+    : [{category:(e.sessions&&e.sessions[0]&&e.sessions[0].category)||'General', subcategory:'', hours}];
   return {date:e.date, day:DAYS[dt.getDay()], hours, target:+e.target, sessions,
           result: hours >= +e.target ? '🟢' : '🔴'};
 }
